@@ -1,0 +1,113 @@
+%Jiao Hailin
+%2019-4-15
+clear all
+close all
+clc
+
+%%
+load uy1;     %白噪声数据
+z=uy1(:,1);   %输出数据 
+u=uy1(:,2);   %输入数据
+
+%%
+%%给样本系数矩阵H(i,:)    样本观测矩阵Z(i,:)
+%假设为1阶
+n=1;
+for i=2:100
+    HL1(i,:)=[-z(i-1) u(i-1)];
+    ZL1(i,:)=[z(i)];
+end
+c1=inv(HL1'*HL1)*HL1'*ZL1;
+e=ZL1- HL1*c1;
+V(1)=e'*e/100;
+
+J1=0;
+for i=2:100
+   J1=J1+[z(i)+z(i-1)*c1(1)+c1(2)*u(i-1)].^2;
+end
+JJ1=J1+z(1).^2;
+AIC(1)=100*log(JJ1/100)+4*1;
+%假设为2阶
+n=2;
+for i=3:100
+    HL2(i,:)=[-z(i-1) -z(i-2) u(i-1) u(i-2)];
+    ZL2(i,:)=[z(i)];
+end
+c2=inv(HL2'*HL2)*HL2'*ZL2;
+e=ZL2- HL2*c2;
+V(2)=e'*e/100;
+J2=0;
+for i=3:100
+   J2=J2+[z(i)+z(i-1)*c2(1)+z(i-2)*c2(2)-c2(3)*u(i-1)-c2(4)*u(i-2)].^2;
+end
+JJ2=J2+z(2).^2+z(1).^2;
+AIC(2)=100*log(JJ2/100)+4*2;
+%假设为3阶
+n=3;
+for i=4:100
+    HL3(i,:)=[-z(i-1) -z(i-2)  -z(i-3) u(i-1) u(i-2) u(i-3)];
+    ZL3(i,:)=[z(i)];
+end
+c3=inv(HL3'*HL3)*HL3'*ZL3;
+e=ZL3- HL3*c3;
+V(3)=e'*e/100;
+J3=0;
+for i=4:100
+   J3=J3+[z(i)+z(i-1)*c3(1)+z(i-2)*c3(2)+z(i-3)*c3(3)-c3(4)*u(i-1)-c3(5)*u(i-2)-c3(6)*u(i-3)].^2;
+end
+JJ3=J3+z(3).^2+z(2).^2+z(1).^2;
+AIC(3)=100*log(JJ3/100)+4*3;
+%假设为4阶
+n=4;
+for i=5:100
+    HL4(i,:)=[-z(i-1) -z(i-2) -z(i-3) -z(i-4) u(i-1) u(i-2) u(i-3) u(i-4)];
+    ZL4(i,:)=[z(i)];
+end
+c4=inv(HL4'*HL4)*HL4'*ZL4;
+e=ZL4- HL4*c4;
+V(4)=e'*e/100;
+J4=0;
+for i=5:100
+   J4=J4+(z(i)+z(i-1)*c4(1)+z(i-2)*c4(2)+z(i-3)*c4(3)+z(i-4)*c4(4)-c4(5)*u(i-1)-c4(6)*u(i-2)-c4(7)*u(i-3)-c4(8)*u(i-4)).^2;
+end
+JJ4=J4+z(4).^2+z(3).^2+z(2).^2+z(1).^2;
+AIC(4)=100*log(JJ4/100)+4*4;
+%假设为4阶
+n=5;
+for i=6:100
+    HL5(i,:)=[-z(i-1) -z(i-2) -z(i-3) -z(i-4) -z(i-5) u(i-1) u(i-2) u(i-3) u(i-4) u(i-5)];
+    ZL5(i,:)=[z(i)];
+end
+c5=inv(HL5'*HL5)*HL5'*ZL5;
+e=ZL5- HL5*c5;
+V(5)=e'*e/100;
+J5=0;
+for i=6:100
+   J5=J5+(z(i)+z(i-1)*c5(1)+z(i-2)*c5(2)+z(i-3)*c5(3)+z(i-4)*c5(4)+z(i-5)*c5(5)-c5(6)*u(i-1)-c5(7)*u(i-2)-c5(8)*u(i-3)-c5(9)*u(i-4)-c5(10)*u(i-5)).^2;
+end
+JJ5=J5+z(5).^2+z(4).^2+z(3).^2+z(2).^2+z(1).^2;
+AIC(5)=100*log(JJ5/100)+4*5;
+%%
+figure(1)
+i=1:5
+plot(1:5,V(i),'-o','markersize',10);
+xlabel('模型阶次'); ylabel('	残差方差	');
+axis([0 5 -2 4]);
+title('按残差方差定阶');
+
+figure(2)
+x=min(AIC);
+for i=1:5
+    if(AIC(i)==x)
+        N=i;       
+    end
+end
+plot(1:5,[AIC(1),AIC(2),AIC(3),AIC(4),AIC(5)]);
+hold on
+plot(N,AIC(N),'o','markersize',20);
+
+xlabel('模型阶次'); ylabel('	AIC估计值	');
+title('AIC估计模型的阶次');
+fprintf('辨识出的阶次为%g\n',N);
+
+
